@@ -3,12 +3,39 @@
    ══════════════════════════════════════ */
 
 const Settings = {
+  currentTab: 'users',
+
   render(container) {
     if (App.currentUser.role !== 'admin') {
       container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🚫</div><div class="empty-state-text">Accès réservé à l\'administrateur</div></div>';
       return;
     }
 
+    container.innerHTML = `
+      <div class="tabs">
+        <button class="tab-btn ${this.currentTab === 'users' ? 'active' : ''}" onclick="Settings.switchTab('users')">${Icons.users || '👤'} Utilisateurs</button>
+        <button class="tab-btn ${this.currentTab === 'categories' ? 'active' : ''}" onclick="Settings.switchTab('categories')">${Icons.layers || '📁'} Catégories</button>
+      </div>
+      <div id="settings-content"></div>
+    `;
+
+    this.renderTabContent(document.getElementById('settings-content'));
+  },
+
+  switchTab(tab) {
+    this.currentTab = tab;
+    this.render(document.getElementById('content-area'));
+  },
+
+  renderTabContent(container) {
+    if (this.currentTab === 'users') {
+      this.renderUsers(container);
+    } else {
+      this.renderCategories(container);
+    }
+  },
+
+  renderUsers(container) {
     const users = Store.getAll('users');
     container.innerHTML = `
       <div class="toolbar">
@@ -61,7 +88,6 @@ const Settings = {
         </table>
       </div>
 
-      <!-- Modal User -->
       <div class="modal-overlay" id="user-modal">
         <div class="modal" style="max-width:550px">
           <div class="modal-header">
@@ -131,13 +157,85 @@ const Settings = {
     `;
   },
 
+  renderCategories(container) {
+    const categories = Store.getAll('categories');
+    container.innerHTML = `
+      <div class="toolbar">
+        <div class="toolbar-left">
+          <h2>📂 Gestion des Catégories</h2>
+        </div>
+        <div class="toolbar-right">
+          <button class="btn btn-primary" onclick="Settings.openCategoryModal()">
+            ${Icons.plus} Nouvelle catégorie
+          </button>
+        </div>
+      </div>
+      
+      <div class="table-container" style="margin-top:20px">
+        <table>
+          <thead>
+            <tr>
+              <th>Emoji</th>
+              <th>Nom de la catégorie</th>
+              <th>Produits liés</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${categories.map(c => {
+              const productCount = Store.getAll('products').filter(p => p.category === c.id).length;
+              return `
+                <tr>
+                  <td style="font-size:1.5rem">${c.emoji || '📦'}</td>
+                  <td class="fw-700">${c.name}</td>
+                  <td class="text-muted">${productCount} produit(s)</td>
+                  <td>
+                    <div class="actions-cell">
+                      <button class="action-btn" title="Modifier" onclick="Settings.openCategoryModal(${c.id})">${Icons.edit}</button>
+                      <button class="action-btn danger" title="Supprimer" onclick="Settings.deleteCategory(${c.id})">${Icons.trash}</button>
+                    </div>
+                  </td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="modal-overlay" id="category-modal">
+        <div class="modal" style="max-width:400px">
+          <div class="modal-header">
+            <h3 class="modal-title" id="cat-modal-title">Catégorie</h3>
+            <button class="modal-close" onclick="Settings.closeCategoryModal()">✕</button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" id="cat-id">
+            <div class="form-group">
+              <label class="form-label">Nom de la catégorie *</label>
+              <input type="text" id="cat-name" class="form-input" placeholder="Ex: Plomberie">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Emoji *</label>
+              <input type="text" id="cat-emoji" class="form-input" placeholder="Ex: 🔨">
+              <small class="text-muted">Utilisez un emoji pour illustrer le rayon</small>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-outline" onclick="Settings.closeCategoryModal()">Annuler</button>
+            <button class="btn btn-primary" onclick="Settings.saveCategory()">Enregistrer</button>
+          </div>
+        </div>
+      </div>
+    `;
+  },
+
   togglePerms(role) {
     const cont = document.getElementById('usr-perms-container');
     if (role === 'admin') {
-      cont.style.display = 'none';
+      if(cont) cont.style.display = 'none';
       document.querySelectorAll('.usr-perm').forEach(cb => cb.checked = true);
     } else {
-      cont.style.display = 'block';
+      if(cont) cont.style.display = 'block';
     }
   },
 
@@ -203,9 +301,7 @@ const Settings = {
     if (id) {
       Store.update('users', parseInt(id), userData);
       Toast.show('Utilisateur modifié avec succès', 'success');
-      Store.add('activityLog', { user: App.currentUser.username, action: `Modification de l'utilisateur ${username}`, type: 'info' });
     } else {
-      // Check if username exists
       const existing = Store.getAll('users').find(u => u.username === username);
       if (existing) {
         Toast.show("Cet identifiant est déjà pris", 'error');
@@ -213,7 +309,6 @@ const Settings = {
       }
       Store.add('users', userData);
       Toast.show('Utilisateur créé avec succès', 'success');
-      Store.add('activityLog', { user: App.currentUser.username, action: `Création de l'utilisateur ${username}`, type: 'info' });
     }
 
     this.closeUserModal();
@@ -230,7 +325,66 @@ const Settings = {
     if (confirm(`Êtes-vous sûr de vouloir supprimer l'utilisateur ${u.name} ?`)) {
       Store.remove('users', id);
       Toast.show('Utilisateur supprimé', 'success');
-      Store.add('activityLog', { user: App.currentUser.username, action: `Suppression de l'utilisateur ${u.username}`, type: 'warning' });
+      this.render(document.getElementById('content-area'));
+    }
+  },
+
+  openCategoryModal(id = null) {
+    const modal = document.getElementById('category-modal');
+    modal.classList.add('active');
+    
+    if (id) {
+      const c = Store.getById('categories', id);
+      document.getElementById('cat-modal-title').textContent = "Modifier la catégorie";
+      document.getElementById('cat-id').value = c.id;
+      document.getElementById('cat-name').value = c.name;
+      document.getElementById('cat-emoji').value = c.emoji;
+    } else {
+      document.getElementById('cat-modal-title').textContent = "Nouvelle catégorie";
+      document.getElementById('cat-id').value = '';
+      document.getElementById('cat-name').value = '';
+      document.getElementById('cat-emoji').value = '📦';
+    }
+  },
+
+  closeCategoryModal() {
+    document.getElementById('category-modal').classList.remove('active');
+  },
+
+  saveCategory() {
+    const id = document.getElementById('cat-id').value;
+    const name = document.getElementById('cat-name').value.trim();
+    const emoji = document.getElementById('cat-emoji').value.trim();
+
+    if (!name || !emoji) {
+      Toast.show('Nom et Emoji requis', 'error');
+      return;
+    }
+
+    const catData = { name, emoji };
+
+    if (id) {
+      Store.update('categories', parseInt(id), catData);
+      Toast.show('Catégorie modifiée', 'success');
+    } else {
+      Store.add('categories', catData);
+      Toast.show('Catégorie ajoutée', 'success');
+    }
+
+    this.closeCategoryModal();
+    this.render(document.getElementById('content-area'));
+  },
+
+  deleteCategory(id) {
+    const products = Store.getAll('products').filter(p => p.category === id);
+    if (products.length > 0) {
+      Toast.show(`Impossible de supprimer : ${products.length} produit(s) lié(s)`, 'error');
+      return;
+    }
+
+    if (confirm('Voulez-vous vraiment supprimer cette catégorie ?')) {
+      Store.remove('categories', id);
+      Toast.show('Catégorie supprimée', 'warning');
       this.render(document.getElementById('content-area'));
     }
   }

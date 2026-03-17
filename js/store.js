@@ -48,43 +48,48 @@ const Store = {
 
   // ── Demo Data Seed ──
   seed() {
-    if (localStorage.getItem('_seeded_reset')) return;
+    const isSeeded = localStorage.getItem('_seeded_v3');
+    
+    // Core users
+    if (!localStorage.getItem('users') || Store.getAll('users').length === 0) {
+      this.save('users', [
+        { id: 1, username: 'admin', password: 'admin', name: 'Administrateur', role: 'admin', permissions: ['dashboard', 'products', 'sales', 'suppliers', 'clients', 'orders', 'reports', 'settings'] }
+      ]);
+    }
 
-    // Users : We only keep the main admin
-    this.save('users', [
-      { id: 1, username: 'admin', password: 'admin', name: 'Administrateur', role: 'admin', permissions: ['dashboard', 'products', 'sales', 'suppliers', 'clients', 'orders', 'reports', 'settings'] }
-    ]);
+    // Categories (Check if empty even if already seeded)
+    if (!localStorage.getItem('categories') || Store.getAll('categories').length === 0) {
+      this.save('categories', [
+        { id: 1, name: 'Outillage à main', emoji: '🔨' },
+        { id: 2, name: 'Outillage électroportatif', emoji: '⚡' },
+        { id: 3, name: 'Plomberie & Sanitaire', emoji: '🚿' },
+        { id: 4, name: 'Peinture & Droguerie', emoji: '🎨' },
+        { id: 5, name: 'Visserie & Boulonnerie', emoji: '🔩' },
+        { id: 6, name: 'Serrurerie & Sécurité', emoji: '🔒' },
+        { id: 7, name: 'Jardin & Extérieur', emoji: '🌱' },
+        { id: 8, name: 'Gros-œuvre & Matériaux', emoji: '🧱' },
+        { id: 9, name: 'Électricité & Éclairage', emoji: '💡' },
+        { id: 10, name: 'Quincaillerie de meuble', emoji: '🚪' },
+        { id: 11, name: 'EPI & Sécurité au travail', emoji: '🦺' },
+        { id: 12, name: 'Bois & Menuiserie', emoji: '🪵' }
+      ]);
+    }
 
-    // Categories
-    this.save('categories', []);
+    if (isSeeded) return;
 
-    // Products
+    // Others (only if never seeded)
     this.save('products', []);
-
-    // Suppliers
     this.save('suppliers', []);
-
-    // Clients
     this.save('clients', []);
-
-    // Sales
     this.save('sales', []);
-
-    // Orders
     this.save('orders', []);
-
-    // Invoices
     this.save('invoices', []);
-
-    // Quotes (Devis)
     this.save('quotes', []);
-
-    // Activity log
     this.save('activityLog', [
       { id: 1, date: new Date().toISOString(), user: 'admin', action: 'Système réinitialisé à zéro', type: 'warning' }
     ]);
 
-    localStorage.setItem('_seeded_reset', '1');
+    localStorage.setItem('_seeded_v3', '1');
   },
 
   // ── Helpers ──
