@@ -527,7 +527,7 @@ const Invoices = {
   .status.impayée{background:#fee2e2;color:#991b1b}
   @media print{body{padding:20px}}
 </style></head><body>
-  <h1>🔧 QuincaGest</h1>
+  <h1>🔧 Quinca BA & FRERES TP</h1>
   <p class="subtitle">Facture FACT-${String(inv.id).padStart(4, '0')}</p>
   <div class="header-grid">
     <div><strong>Client :</strong> ${client?.name || '-'}<br>${client?.phone || ''}<br>${client?.address || ''}</div>
@@ -544,7 +544,7 @@ const Invoices = {
     <div class="total-row final"><span>Reste à payer :</span><span>${Store.formatPrice(inv.total-(inv.paidAmount||0))}</span></div>
   </div>
   ${inv.payments?.length ? `<h3 style="margin-top:30px">Paiements reçus</h3><table><thead><tr><th>Date</th><th>Montant</th><th>Mode</th><th>Réf.</th></tr></thead><tbody>${inv.payments.map(p=>`<tr><td>${Store.formatDateTime(p.date)}</td><td><strong>${Store.formatPrice(p.amount)}</strong></td><td>${p.method}</td><td>${p.reference||'-'}</td></tr>`).join('')}</tbody></table>` : ''}
-  <p style="text-align:center;margin-top:40px;color:#999;font-size:12px">QuincaGest - Application de gestion de quincaillerie</p>
+  <p style="text-align:center;margin-top:40px;color:#999;font-size:12px">Quinca BA & FRERES TP - Application de gestion de quincaillerie</p>
 </body></html>`;
 
     const win = window.open('', '_blank');
