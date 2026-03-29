@@ -155,12 +155,12 @@ const Dashboard = {
     const h = canvas.height - padding.top - padding.bottom;
 
     // Grid lines
-    ctx.strokeStyle = 'rgba(100,100,180,0.1)';
+    ctx.strokeStyle = 'rgba(0,0,0,0.06)';
     ctx.lineWidth = 1;
     for (let i = 0; i <= 4; i++) {
       const y = padding.top + (h / 4) * i;
       ctx.beginPath(); ctx.moveTo(padding.left, y); ctx.lineTo(canvas.width - padding.right, y); ctx.stroke();
-      ctx.fillStyle = '#6b6b8d';
+      ctx.fillStyle = '#64748b';
       ctx.font = '11px Inter';
       ctx.textAlign = 'right';
       ctx.fillText(Store.formatPrice(Math.round(maxVal - (maxVal / 4) * i)), padding.left - 8, y + 4);
@@ -170,8 +170,8 @@ const Dashboard = {
     const barW = w / days.length * 0.6;
     const gap = w / days.length;
     const gradient = ctx.createLinearGradient(0, padding.top, 0, canvas.height - padding.bottom);
-    gradient.addColorStop(0, '#818cf8');
-    gradient.addColorStop(1, '#4f46e5');
+    gradient.addColorStop(0, '#34d399');
+    gradient.addColorStop(1, '#059669');
 
     days.forEach((label, i) => {
       const barH = (values[i] / maxVal) * h;
@@ -191,7 +191,7 @@ const Dashboard = {
       ctx.fill();
 
       // Label
-      ctx.fillStyle = '#a5a5c0';
+      ctx.fillStyle = '#94a3b8';
       ctx.font = '11px Inter';
       ctx.textAlign = 'center';
       ctx.fillText(label, padding.left + i * gap + gap / 2, canvas.height - 12);
@@ -215,7 +215,7 @@ const Dashboard = {
     })).filter(d => d.count > 0);
 
     const total = data.reduce((s, d) => s + d.count, 0);
-    const colors = ['#818cf8', '#34d399', '#fbbf24', '#f87171', '#38bdf8', '#a78bfa', '#fb923c', '#ec4899'];
+    const colors = ['#10b981', '#059669', '#34d399', '#6ee7b7', '#fbbf24', '#38bdf8', '#f87171', '#fb923c'];
     const cx = canvas.width / 2 - 60;
     const cy = canvas.height / 2;
     const radius = Math.min(cx, cy) - 20;
@@ -235,14 +235,14 @@ const Dashboard = {
     // Center hole (donut)
     ctx.beginPath();
     ctx.arc(cx, cy, radius * 0.55, 0, Math.PI * 2);
-    ctx.fillStyle = '#1a1a3e';
+    ctx.fillStyle = '#ffffff';
     ctx.fill();
-    ctx.fillStyle = '#f0f0ff';
+    ctx.fillStyle = '#1e293b';
     ctx.font = 'bold 18px Inter';
     ctx.textAlign = 'center';
     ctx.fillText(total, cx, cy + 2);
     ctx.font = '11px Inter';
-    ctx.fillStyle = '#a5a5c0';
+    ctx.fillStyle = '#94a3b8';
     ctx.fillText('produits', cx, cy + 18);
 
     // Legend
@@ -251,7 +251,7 @@ const Dashboard = {
     data.forEach((d, i) => {
       ctx.fillStyle = colors[i % colors.length];
       ctx.fillRect(legendX, legendY, 10, 10);
-      ctx.fillStyle = '#a5a5c0';
+      ctx.fillStyle = '#64748b';
       ctx.font = '11px Inter';
       ctx.textAlign = 'left';
       ctx.fillText(`${d.emoji} ${d.name} (${d.count})`, legendX + 16, legendY + 9);
